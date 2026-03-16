@@ -1,0 +1,19 @@
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+<rect width="32" height="32" rx="8" fill="#0b0d19"/>
+<g transform="translate(5, 5)">
+<path d="M14.735 21.8296L13.9941 21.8296C13.6888 21.8296 13.415 21.6412 13.3056 21.3562L9.74657 12.0826L0.473176 8.52342C0.18816 8.41401 4.591e-05 8.14017 0 7.83487L2.00911e-06 7.09399L14.7498 7.0791L14.735 21.8296Z" fill="white"/>
+<path d="M14.735 21.8296L13.9941 21.8296C13.6888 21.8296 13.415 21.6412 13.3056 21.3562L9.74657 12.0826L0.473176 8.52342C0.18816 8.41401 4.591e-05 8.14017 0 7.83487L2.00911e-06 7.09399L14.7498 7.0791L14.735 21.8296Z" fill="url(#fav_g0)" fill-opacity="0.4"/>
+<path d="M21.6027 19.1706H20.6501C20.2575 19.1706 19.9055 18.9284 19.7648 18.5618L15.1886 6.6377L3.26467 2.06123C2.89819 1.92055 2.65631 1.56844 2.65625 1.17588L2.65625 0.22324L21.6219 0.204102L21.6027 19.1706Z" fill="white"/>
+<path d="M21.6027 19.1706H20.6501C20.2575 19.1706 19.9055 18.9284 19.7648 18.5618L15.1886 6.6377L3.26467 2.06123C2.89819 1.92055 2.65631 1.56844 2.65625 1.17588L2.65625 0.22324L21.6219 0.204102L21.6027 19.1706Z" fill="url(#fav_g1)" fill-opacity="0.4"/>
+</g>
+<defs>
+<linearGradient id="fav_g0" x1="7.375" y1="7.079" x2="7.375" y2="21.83" gradientUnits="userSpaceOnUse">
+<stop stop-color="white" stop-opacity="0"/>
+<stop offset="0.75" stop-color="#3B82F6"/>
+</linearGradient>
+<linearGradient id="fav_g1" x1="12.14" y1="0.204" x2="12.14" y2="19.171" gradientUnits="userSpaceOnUse">
+<stop stop-color="white" stop-opacity="0"/>
+<stop offset="0.75" stop-color="#3B82F6"/>
+</linearGradient>
+</defs>
+</svg>

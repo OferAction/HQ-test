@@ -1,26 +1,77 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* ─── Theme tokens ───────────────────────────────────────────── */
+:root,
+[data-theme="dark"] {
+  --bg:             #0b0d19;
+  --surface:        #101320;
+  --elevated:       #151929;
+  --hover:          #131728;
+  --selected:       #152040;
+  --border:         #1c2133;
+  --border-subtle:  #181c2c;
+  --border-strong:  #273048;
+  --border-hover:   #384568;
+  --t1:             #f0f4ff;
+  --t2:             #ccd4f0;
+  --t3:             #9aa8cc;
+  --t4:             #7888b0;
+  --t5:             #586890;
 }
 
+[data-theme="light"] {
+  --bg:             #eef1fb;
+  --surface:        #ffffff;
+  --elevated:       #f3f5ff;
+  --hover:          #e8ecf8;
+  --selected:       #dae2ff;
+  --border:         #dce4f2;
+  --border-subtle:  #e8edf8;
+  --border-strong:  #c2ceea;
+  --border-hover:   #96a6c8;
+  --t1:             #0e1020;
+  --t2:             #1a2240;
+  --t3:             #364270;
+  --t4:             #4e6090;
+  --t5:             #6878a8;
+}
+
+/* ─── Tailwind color tokens (inline = stay as var() refs) ─────── */
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-canvas:   var(--bg);
+  --color-surface:  var(--surface);
+  --color-elevated: var(--elevated);
+  --color-hover:    var(--hover);
+  --color-selected: var(--selected);
+  --color-line:     var(--border);
+  --color-subtle:   var(--border-subtle);
+  --color-strong:   var(--border-strong);
+  --color-ink:      var(--t1);
+  --color-ink-2:    var(--t2);
+  --color-ink-3:    var(--t3);
+  --color-ink-4:    var(--t4);
+  --color-ink-5:    var(--t5);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
+/* ─── Base ─────────────────────────────────────────────────────── */
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--bg);
+  color: var(--t1);
+  font-family: var(--font-inter), 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
+
+* { box-sizing: border-box; }
+
+/* Light mode card shadows */
+[data-theme="light"] .bg-surface {
+  box-shadow: 0 1px 3px rgba(0, 0, 30, 0.06), 0 1px 2px rgba(0, 0, 30, 0.04);
+}
+
+::-webkit-scrollbar        { width: 5px; height: 5px; }
+::-webkit-scrollbar-track  { background: transparent; }
+::-webkit-scrollbar-thumb  { background: var(--border-strong); border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: var(--border-hover); }
