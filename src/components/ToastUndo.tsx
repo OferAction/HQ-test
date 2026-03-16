@@ -1,67 +1,78 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 
 interface Props {
   message: string;
-  duration?: number; // ms
+  duration?: number;
   onUndo: () => void;
   onExpire: () => void;
 }
 
-const RADIUS = 10;
-const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
+const CX = 13, CY = 13, R = 11;
+
+function polarToCartesian(angleDeg: number) {
+  const rad = (angleDeg - 90) * (Math.PI / 180);
+  return { x: CX + R * Math.cos(rad), y: CY + R * Math.sin(rad) };
+}
+
+function piePath(progress: number): string {
+  if (progress <= 0) return '';
+  if (progress >= 0.9999) {
+    return `M ${CX} ${CY - R} A ${R} ${R} 0 1 1 ${CX - 0.001} ${CY - R} Z`;
+  }
+  const angle = progress * 360;
+  const end = polarToCartesian(angle);
+  const start = polarToCartesian(0);
+  const largeArc = angle > 180 ? 1 : 0;
+  return `M ${CX} ${CY} L ${start.x} ${start.y} A ${R} ${R} 0 ${largeArc} 1 ${end.x} ${end.y} Z`;
+}
 
 export default function ToastUndo({ message, duration = 10000, onUndo, onExpire }: Props) {
-  const [progress, setProgress] = useState(0); // 0 → 1
-  const startRef = useRef<number | null>(null);
-  const rafRef = useRef<number | null>(null);
+  const pathRef = useRef<SVGPathElement>(null);
+  const onExpireRef = useRef(onExpire);
+  onExpireRef.current = onExpire;
 
   useEffect(() => {
-    startRef.current = performance.now();
+    const start = performance.now();
+    let raf: number;
 
     function tick(now: number) {
-      const elapsed = now - (startRef.current ?? now);
-      const p = Math.min(elapsed / duration, 1);
-      setProgress(p);
+      const p = Math.min((now - start) / duration, 1);
+      if (pathRef.current) {
+        pathRef.current.setAttribute('d', piePath(p));
+      }
       if (p < 1) {
-        rafRef.current = requestAnimationFrame(tick);
+        raf = requestAnimationFrame(tick);
       } else {
-        onExpire();
+        onExpireRef.current();
       }
     }
 
-    rafRef.current = requestAnimationFrame(tick);
-    return () => { if (rafRef.current) cancelAnimationFrame(rafRef.current); };
-  }, [duration, onExpire]);
-
-  const dashOffset = CIRCUMFERENCE * (1 - progress);
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [duration]);
 
   return (
-    <div className="fixed bottom-6 left-6 z-50 flex items-center gap-3 px-4 py-3 rounded-xl border border-[var(--border-strong)] shadow-2xl"
-         style={{ background: 'var(--elevated)' }}>
-      {/* Countdown ring */}
-      <svg width="26" height="26" viewBox="0 0 26 26" className="flex-shrink-0 -rotate-90">
-        {/* Track */}
-        <circle cx="13" cy="13" r={RADIUS} fill="none" stroke="var(--border-strong)" strokeWidth="2.5" />
-        {/* Progress */}
-        <circle
-          cx="13" cy="13" r={RADIUS}
-          fill="none"
-          stroke="var(--t3)"
-          strokeWidth="2.5"
-          strokeLinecap="round"
-          strokeDasharray={CIRCUMFERENCE}
-          strokeDashoffset={dashOffset}
-          style={{ transition: 'stroke-dashoffset 0.05s linear' }}
-        />
+    <div className="flex items-center gap-3 px-3 py-2.5 rounded-2xl shadow-2xl"
+         style={{ background: '#1a1f2e', border: '1px solid rgba(255,255,255,0.08)' }}>
+      {/* Pie countdown */}
+      <svg width="26" height="26" viewBox="0 0 26 26" className="flex-shrink-0">
+        {/* Background circle (remaining time) */}
+        <circle cx={CX} cy={CY} r={R} fill="rgba(255,255,255,0.22)" />
+        {/* Elapsed slice (grows clockwise) */}
+        <path ref={pathRef} fill="#0f1320" d="" />
       </svg>
 
-      <span className="text-sm font-medium text-ink whitespace-nowrap">{message}</span>
+      <span className="text-sm font-medium whitespace-nowrap" style={{ color: 'rgba(255,255,255,0.9)' }}>
+        {message}
+      </span>
 
       <button
         onClick={onUndo}
-        className="ml-1 px-3 py-1.5 rounded-lg bg-[var(--surface)] border border-[var(--border-strong)] text-sm font-medium text-ink hover:border-[var(--border-hover)] transition-colors"
+        className="ml-1 px-3 py-1.5 rounded-xl text-sm font-semibold transition-colors"
+        style={{ background: 'rgba(255,255,255,0.95)', color: '#111' }}
       >
         Undo
       </button>

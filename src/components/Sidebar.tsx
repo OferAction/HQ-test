@@ -2,8 +2,9 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, ClipboardList, ScrollText, Zap } from 'lucide-react';
+import { LayoutDashboard, ClipboardList, ScrollText } from 'lucide-react';
 import { useTheme } from '@/context/ThemeContext';
+import ActOneIcon from './ActOneIcon';
 
 const navItems = [
   { label: 'Overview', href: '/', icon: LayoutDashboard },
@@ -17,7 +18,7 @@ export default function Sidebar() {
   const logoSrc = theme === 'dark' ? '/logo-dark.svg' : '/logo-light.svg';
 
   return (
-    <aside className="w-[150px] min-h-screen bg-canvas flex flex-col flex-shrink-0">
+    <aside className="w-[150px] h-full bg-canvas flex flex-col flex-shrink-0">
       {/* Logo */}
       <div className="px-5 h-16 flex items-center border-b border-line">
         <img src={logoSrc} alt="ActionHQ" className="h-5 w-auto" />
@@ -25,7 +26,7 @@ export default function Sidebar() {
 
       {/* Nav + bottom — bordered section */}
       <div className="flex-1 flex flex-col border-r border-line">
-        <nav className="flex-1 px-3 py-4 flex flex-col gap-0.5">
+        <nav className="px-3 py-4 flex flex-col gap-0.5">
           {navItems.map(({ label, href, icon: Icon }) => {
             const active = pathname === href;
             return (
@@ -45,10 +46,11 @@ export default function Sidebar() {
           })}
         </nav>
 
-        {/* Bottom action */}
-        <div className="px-3 py-4 border-t border-line">
+        {/* Separator + ActOne */}
+        <div className="px-3 pb-2">
+          <div className="border-t border-line mb-3" />
           <button className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-ink-3 hover:text-ink hover:bg-hover w-full transition-colors">
-            <Zap size={16} className="text-ink-4" />
+            <ActOneIcon size={16} className="text-ink-4" />
             ActOne
           </button>
         </div>

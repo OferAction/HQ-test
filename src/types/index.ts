@@ -26,10 +26,10 @@ export interface RunDataPoint {
 
 export interface ReviewRequest {
   id: string;
+  reqId: string;
   status: ReviewStatus;
   reason: string;
   type: ReviewType;
-  triggerTime: string;
   sentToReview: string;
   workflowId: string;
   workflowName: string;
@@ -54,4 +54,5 @@ export interface AuditEntry {
   actor: string;
   action: string;
   timestamp: string;
+  comment?: string;
 }

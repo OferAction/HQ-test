@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { UserCheck, Users, Timer, ThumbsUp } from 'lucide-react';
 import { reviewRequests, CURRENT_USER } from '@/data/mockData';
 import { ReviewRequest } from '@/types';
 import KPICard from '@/components/KPICard';
@@ -13,6 +14,7 @@ const PANEL_MAX = 680;
 const PANEL_DEFAULT = 440;
 
 type Tab = 'mine' | 'all';
+type Toast = { id: string; message: string; nextId: string | null; undo: () => void };
 
 export default function ReviewsPage() {
   const [reviews, setReviews] = useState<ReviewRequest[]>(reviewRequests);
@@ -22,18 +24,13 @@ export default function ReviewsPage() {
   );
   const [panelWidth, setPanelWidth] = useState(PANEL_DEFAULT);
   const panelWidthRef = useRef(PANEL_DEFAULT);
-
-  type Toast = { id: string; message: string; undo: () => void };
   const [toast, setToast] = useState<Toast | null>(null);
-  const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Mine = items assigned to current user that are still pending
-  const mineReviews = reviews.filter(
-    (r) => r.assignedTo.id === CURRENT_USER.id && r.status === 'Pending'
-  );
+  // Mine = all items assigned to current user (any status)
+  const mineReviews = reviews.filter((r) => r.assignedTo.id === CURRENT_USER.id);
 
   // KPIs — scoped to Mine
-  const awaiting     = mineReviews.length;
+  const awaiting     = mineReviews.filter((r) => r.status === 'Pending').length;
   const allResolved  = reviews.filter((r) => r.assignedTo.id === CURRENT_USER.id && r.status !== 'Pending');
   const reviewed     = allResolved.length;
   const approved     = allResolved.filter((r) => r.status === 'Approved').length;
@@ -41,11 +38,11 @@ export default function ReviewsPage() {
 
   const visibleReviews = tab === 'mine' ? mineReviews : reviews;
 
-  function showToast(id: string, message: string, prevReview: ReviewRequest) {
-    if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+  function showToast(id: string, message: string, prevReview: ReviewRequest, nextId: string | null) {
     setToast({
       id,
       message,
+      nextId,
       undo: () => {
         setReviews((prev) => prev.map((r) => (r.id === id ? prevReview : r)));
         setSelected((prev) => (prev.id === id ? prevReview : prev));
@@ -54,28 +51,50 @@ export default function ReviewsPage() {
     });
   }
 
-  function handleApprove(id: string) {
-    const prev = reviews.find((r) => r.id === id)!;
-    setReviews((p) => p.map((r) => (r.id === id ? { ...r, status: 'Approved' } : r)));
-    setSelected((p) => (p.id === id ? { ...p, status: 'Approved' } : p));
-    showToast(id, 'Item has been approved', prev);
+  function makeTimestamp() {
+    return new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true });
   }
 
-  function handleDecline(id: string) {
-    const prev = reviews.find((r) => r.id === id)!;
-    setReviews((p) => p.map((r) => (r.id === id ? { ...r, status: 'Declined' } : r)));
-    setSelected((p) => (p.id === id ? { ...p, status: 'Declined' } : p));
-    showToast(id, 'Item has been declined', prev);
+  function appendAuditEntry(r: typeof reviews[0], action: string, comment: string) {
+    if (!r.invoice) return r;
+    const entry = { id: `a-${Date.now()}`, actor: CURRENT_USER.name, action, timestamp: makeTimestamp(), ...(comment ? { comment } : {}) };
+    return { ...r, invoice: { ...r.invoice, auditTrail: [...r.invoice.auditTrail, entry] } };
   }
 
-  function handleEscalate(id: string) {
+  function handleApprove(id: string, comment: string) {
     const prev = reviews.find((r) => r.id === id)!;
-    // Reassign to R2, status stays Pending
-    setReviews((p) => p.map((r) =>
-      r.id === id ? { ...r, assignedTo: { id: 'u-2', name: 'Tal Solomon', level: 2 } } : r
-    ));
-    setSelected((p) => (p.id === id ? { ...p, assignedTo: { id: 'u-2', name: 'Tal Solomon', level: 2 } } : p));
-    showToast(id, 'Escalated to Tal Solomon', prev);
+    const idx = visibleReviews.findIndex((r) => r.id === id);
+    const nextId = (visibleReviews[idx + 1] ?? visibleReviews[idx - 1])?.id ?? null;
+    setReviews((p) => p.map((r) => r.id === id ? appendAuditEntry({ ...r, status: 'Approved' }, 'Approved', comment) : r));
+    setSelected((p) => p.id === id ? appendAuditEntry({ ...p, status: 'Approved' }, 'Approved', comment) : p);
+    showToast(id, 'Item has been approved', prev, nextId);
+  }
+
+  function handleDecline(id: string, comment: string) {
+    const prev = reviews.find((r) => r.id === id)!;
+    const idx = visibleReviews.findIndex((r) => r.id === id);
+    const nextId = (visibleReviews[idx + 1] ?? visibleReviews[idx - 1])?.id ?? null;
+    setReviews((p) => p.map((r) => r.id === id ? appendAuditEntry({ ...r, status: 'Declined' }, 'Declined', comment) : r));
+    setSelected((p) => p.id === id ? appendAuditEntry({ ...p, status: 'Declined' }, 'Declined', comment) : p);
+    showToast(id, 'Item has been declined', prev, nextId);
+  }
+
+  function handleEscalate(id: string, comment: string) {
+    const prev = reviews.find((r) => r.id === id)!;
+    const idx = visibleReviews.findIndex((r) => r.id === id);
+    const nextId = (visibleReviews[idx + 1] ?? visibleReviews[idx - 1])?.id ?? null;
+    setReviews((p) => p.map((r) => r.id === id ? appendAuditEntry({ ...r, status: 'Handoff' }, 'Escalated to next reviewer', comment) : r));
+    setSelected((p) => p.id === id ? appendAuditEntry({ ...p, status: 'Handoff' }, 'Escalated to next reviewer', comment) : p);
+    showToast(id, 'Escalated to next reviewer', prev, nextId);
+  }
+
+  function handleExpire() {
+    const nextId = toast?.nextId ?? null;
+    setToast(null);
+    if (nextId) {
+      const nextReview = reviews.find((r) => r.id === nextId);
+      if (nextReview) setSelected(nextReview);
+    }
   }
 
   const startPanelResize = useCallback((startX: number) => {
@@ -125,10 +144,10 @@ export default function ReviewsPage() {
     <div className="px-6 pt-6 flex flex-col gap-5 h-full">
       {/* KPIs */}
       <div className="grid grid-cols-4 gap-4">
-        <KPICard label="Awaiting decision"  value={awaiting}           subtext="Assigned to me" />
-        <KPICard label="Reviewed"           value={reviewed}           subtext="Decisions made" />
-        <KPICard label="Avg Response Time"  value="3.2 days"           subtext="Time to decision" />
-        <KPICard label="Approval rate"      value={`${approvalRate}%`} subtext="Of my reviewed cases" />
+        <KPICard label="Awaiting decision"     value={awaiting}           subtext="Assigned to me"       icon={UserCheck} />
+        <KPICard label="Reviewed"              value={reviewed}           subtext="Decisions made"       icon={Users} />
+        <KPICard label="Average Response Time" value="3.2 days"           subtext="Time to decision"     icon={Timer} />
+        <KPICard label="Approval rate"         value={`${approvalRate}%`} subtext="Of my reviewed cases" icon={ThumbsUp} />
       </div>
 
       {/* Mine / All tabs */}
@@ -161,21 +180,21 @@ export default function ReviewsPage() {
       </div>
 
       {/* Main area */}
-      <div className="flex flex-1 min-h-0">
+      <div className="flex flex-1 min-h-0 relative">
         <HumanReviewTable
           reviews={visibleReviews}
           selectedId={syncedSelected?.id ?? null}
           onSelect={setSelected}
           showAssignee={tab === 'all'}
         />
-        {/* Resize handle */}
+        {/* Resize handle — seamless background, handle appears on hover */}
         <div
           onMouseDown={(e) => { e.preventDefault(); startPanelResize(e.clientX); }}
-          className="w-1 flex-shrink-0 cursor-col-resize group relative"
+          className="w-1 flex-shrink-0 cursor-col-resize group relative bg-selected"
         >
-          <div className="absolute inset-y-0 left-1/2 -translate-x-1/2 w-px group-hover:w-0.5 bg-line group-hover:bg-blue-500 transition-all" />
+          <div className="absolute inset-y-0 left-1/2 -translate-x-1/2 w-px opacity-0 group-hover:opacity-100 group-hover:w-0.5 bg-blue-500 transition-all" />
         </div>
-        {syncedSelected && (
+        {syncedSelected ? (
           <CaseDetailPanel
             review={syncedSelected}
             currentUser={CURRENT_USER}
@@ -184,17 +203,26 @@ export default function ReviewsPage() {
             onEscalate={handleEscalate}
             width={panelWidth}
           />
+        ) : (
+          <div
+            className="flex-shrink-0 flex-grow-0 h-full border-t border-r border-b-0 border-line rounded-tr-xl"
+            style={{ width: panelWidth, background: 'var(--selected)' }}
+          />
+        )}
+        {toast && (
+          <div
+            className="absolute bottom-6 z-50"
+            style={{ right: panelWidth + 4 + 24 }}
+          >
+            <ToastUndo
+              key={toast.id + toast.message}
+              message={toast.message}
+              onUndo={toast.undo}
+              onExpire={handleExpire}
+            />
+          </div>
         )}
       </div>
-
-      {toast && (
-        <ToastUndo
-          key={toast.id + toast.message}
-          message={toast.message}
-          onUndo={toast.undo}
-          onExpire={() => setToast(null)}
-        />
-      )}
     </div>
   );
 }

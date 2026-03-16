@@ -28,8 +28,8 @@ const BASE_COLS = [
   { key: 'status',   label: 'Status',         defaultWidth: 105 },
   { key: 'reason',   label: 'Reason',          defaultWidth: 185 },
   { key: 'type',     label: 'Type',            defaultWidth: 135 },
-  { key: 'trigger',  label: 'Trigger time',    defaultWidth: 175 },
   { key: 'sent',     label: 'Sent to review',  defaultWidth: 120 },
+  { key: 'reqId',    label: 'ID',              defaultWidth: 110 },
 ];
 const ASSIGNEE_COL = { key: 'assignee', label: 'Assigned to', defaultWidth: 140 };
 
@@ -37,8 +37,8 @@ const COL_SORT_KEY: Record<string, (r: ReviewRequest) => string> = {
   status:   (r) => r.status,
   reason:   (r) => r.reason,
   type:     (r) => r.type,
-  trigger:  (r) => r.triggerTime,
   sent:     (r) => r.sentToReview,
+  reqId:    (r) => r.reqId,
   assignee: (r) => r.assignedTo.name,
 };
 
@@ -156,7 +156,7 @@ export default function HumanReviewTable({ reviews, selectedId, onSelect, showAs
   }, [widths]);
 
   return (
-    <div className="flex-1 min-w-[320px] bg-surface border border-b-0 border-line rounded-t-xl flex flex-col overflow-hidden">
+    <div className="flex-1 min-w-[320px] bg-surface border-t border-l border-b-0 border-line rounded-tl-xl flex flex-col overflow-hidden">
       {/* Fixed title bar */}
       <div className="flex-shrink-0 px-5 py-4 border-b border-line flex items-center justify-between">
         <div className="flex items-center gap-2.5">
@@ -233,8 +233,21 @@ export default function HumanReviewTable({ reviews, selectedId, onSelect, showAs
 
         {/* Rows */}
         {groups.length === 0 ? (
-          <div className="flex items-center justify-center py-16 text-sm text-ink-4">
-            No requests match the current filters
+          <div className="flex flex-col items-center justify-center gap-5 text-center py-16 px-8">
+            <svg width="96" height="96" viewBox="0 0 112 112" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="56" cy="56" r="52" fill="var(--elevated)" />
+              <circle cx="56" cy="56" r="52" stroke="var(--border)" strokeWidth="1" />
+              <circle cx="56" cy="56" r="34" fill="var(--surface)" stroke="var(--border-strong)" strokeWidth="1.5" />
+              <path d="M40 56 L50 66 L72 44" stroke="#34d399" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+              <circle cx="88" cy="26" r="3.5" fill="var(--border-hover)" opacity="0.7" />
+              <circle cx="97" cy="38" r="2" fill="var(--border-hover)" opacity="0.45" />
+              <circle cx="22" cy="84" r="3" fill="var(--border-hover)" opacity="0.6" />
+              <circle cx="12" cy="74" r="2" fill="var(--border-hover)" opacity="0.4" />
+            </svg>
+            <div className="flex flex-col gap-1.5">
+              <p className="text-sm font-semibold text-ink-2">All caught up</p>
+              <p className="text-sm text-ink-4">No pending reviews assigned to you</p>
+            </div>
           </div>
         ) : (
           groups.map((group) => (
@@ -245,12 +258,6 @@ export default function HumanReviewTable({ reviews, selectedId, onSelect, showAs
                   {group.name}
                 </span>
                 <EnvBadge env={group.env} />
-                <span
-                  className="text-xs font-semibold px-1.5 py-px rounded-full border"
-                  style={{ background: 'var(--elevated)', color: 'var(--t3)', borderColor: 'var(--border)' }}
-                >
-                  {group.items.length}
-                </span>
               </div>
 
               {group.items.map((rev) => (
@@ -276,10 +283,10 @@ export default function HumanReviewTable({ reviews, selectedId, onSelect, showAs
                     <span className="text-sm text-ink-3 truncate" title={rev.type}>{rev.type}</span>
                   </div>
                   <div className="flex items-center pl-3 overflow-hidden">
-                    <span className="text-sm text-ink-3 tabular-nums truncate" title={formatTimestamp(rev.triggerTime)}>{formatTimestamp(rev.triggerTime)}</span>
+                    <span className="text-sm text-ink-3 truncate" title={rev.sentToReview}>{rev.sentToReview}</span>
                   </div>
                   <div className="flex items-center pl-3 overflow-hidden">
-                    <span className="text-sm text-ink-3 truncate" title={rev.sentToReview}>{rev.sentToReview}</span>
+                    <span className="text-sm text-ink-3 tabular-nums font-medium truncate" title={rev.reqId}>{rev.reqId}</span>
                   </div>
                   {showAssignee && (
                     <div className="flex items-center pl-3 overflow-hidden">

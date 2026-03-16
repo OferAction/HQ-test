@@ -36,10 +36,10 @@ export function buildReview(overrides?: Partial<ReviewRequest>): ReviewRequest {
   _id++;
   return {
     id: `rev-test-${_id}`,
+    reqId: 'REQ0000',
     status: 'Pending',
     reason: 'Invoice over threshold',
     type: 'Wait for approval',
-    triggerTime: 'March 12, 2025 10:00:00 AM',
     sentToReview: '2 days ago',
     workflowId: 'wf-test-1',
     workflowName: 'Workflow 1',

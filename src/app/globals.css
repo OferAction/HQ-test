@@ -7,7 +7,7 @@
   --surface:        #101320;
   --elevated:       #151929;
   --hover:          #131728;
-  --selected:       #152040;
+  --selected:       #202943;
   --border:         #1c2133;
   --border-subtle:  #181c2c;
   --border-strong:  #273048;
@@ -17,6 +17,15 @@
   --t3:             #9aa8cc;
   --t4:             #7888b0;
   --t5:             #586890;
+
+  /* Panel-specific */
+  --panel-row-border:    #374060;
+  --panel-footer-bg:     #202943;
+  --panel-footer-border: #4f597b;
+  --panel-textarea-bg:   rgb(26 33 55);
+  --panel-label:         #7e8db1;
+  --panel-approve-color: #1a2a5e;
+  --panel-approve-bg:    #ffffff;
 }
 
 [data-theme="light"] {
@@ -34,6 +43,15 @@
   --t3:             #364270;
   --t4:             #4e6090;
   --t5:             #6878a8;
+
+  /* Panel-specific */
+  --panel-row-border:    #c2ceea;
+  --panel-footer-bg:     #dae2ff;
+  --panel-footer-border: #b0bedd;
+  --panel-textarea-bg:   #eef1fb;
+  --panel-label:         #4e6090;
+  --panel-approve-color: #ffffff;
+  --panel-approve-bg:    #1a2a5e;
 }
 
 /* ─── Tailwind color tokens (inline = stay as var() refs) ─────── */
